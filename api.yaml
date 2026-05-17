@@ -1,0 +1,131 @@
+openapi: 3.0.0
+info:
+  title: High Rollers Den - AllSports Football API
+  version: 1.0.0
+  description:  
+    OpenAPI specifikáció az AllSportsAPI football endpointjához.
+    Az API egyetlen végponton működik, ahol a 'met' query paraméter határozza meg a műveletet.
+
+servers:
+  - url: https://apiv2.allsportsapi.com/football/
+
+paths:
+  /:
+    get:
+      summary: AllSports Football API hívás
+      parameters:
+        - name: met
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [Leagues, H2H, Standings, Odds, Fixtures]
+        - name: APIkey
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+        - name: leagueId
+          in: query
+          schema: { type: integer }
+        - name: matchId
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Sikeres válasz
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/FixturesResponse'
+                  - $ref: '#/components/schemas/LeaguesResponse'
+                  - $ref: '#/components/schemas/H2HResponse'
+                  - $ref: '#/components/schemas/StandingsResponse'
+                  - $ref: '#/components/schemas/OddsResponse'
+
+components:
+  schemas:
+    # --- RESPONSES ---
+    FixturesResponse:
+      type: object
+      properties:
+        success: { type: integer }
+        result: { type: array, items: { $ref: '#/components/schemas/Match' } }
+
+    LeaguesResponse:
+      type: object
+      properties:
+        success: { type: integer }
+        result: { type: array, items: { $ref: '#/components/schemas/League' } }
+
+    H2HResponse:
+      type: object
+      properties:
+        success: { type: integer }
+        result:
+          type: object
+          properties:
+            H2H: { type: array, items: { $ref: '#/components/schemas/Match' } }
+            firstTeamResults: { type: array, items: { $ref: '#/components/schemas/Match' } }
+            secondTeamResults: { type: array, items: { $ref: '#/components/schemas/Match' } }
+
+    StandingsResponse:
+      type: object
+      properties:
+        success: { type: integer }
+        result: { type: object, properties: { total: { type: array, items: { $ref: '#/components/schemas/StandingEntry' } } } }
+
+    OddsResponse:
+      type: object
+      properties:
+        success: { type: integer }
+        result: { type: object, additionalProperties: { type: array, items: { $ref: '#/components/schemas/Odds' } } }
+
+    # --- MODELS ---
+    Match:
+      type: object
+      properties:
+        event_key: { type: string }
+        event_date: { type: string }
+        event_time: { type: string }
+        event_home_team: { type: string }
+        event_away_team: { type: string }
+        event_final_result: { type: string }
+        event_halftime_result: { type: string }
+        event_status: { type: string }
+        home_team_logo: { type: string, format: uri }
+        away_team_logo: { type: string, format: uri }
+        league_logo: { type: string, format: uri }
+        league_key: { type: string }
+
+    League:
+      type: object
+      properties:
+        league_key: { type: string }
+        league_name: { type: string }
+        country_name: { type: string }
+        league_logo: { type: string, format: uri }
+
+    StandingEntry:
+      type: object
+      properties:
+        standing_place: { type: string }
+        standing_team: { type: string }
+        standing_PTS: { type: string }
+        team_key: { type: string }
+
+    Odds:
+      type: object
+      properties:
+        match_id: { type: string }
+        odd_1: { type: string }
+        odd_x: { type: string }
+        odd_2: { type: string }
+        odd_bookmakers: { type: string }
